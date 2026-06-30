@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard · Chest X Reasoner</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #131a24, #0a0e14);
+    font-family: 'Segoe UI', sans-serif;
+    color: #e3e8ee;
+    padding: 30px;
+  }
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1000px;
+    margin: 0 auto 30px auto;
+  }
+  .topbar h1 {
+    color: #4fd1ff;
+    font-size: 22px;
+    margin: 0;
+  }
+  .logout {
+    background: none;
+    border: 1px solid #2a3444;
+    color: #9aa7b8;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .logout:hover { border-color: #ff6b6b; color: #ff6b6b; }
+
+  .grid {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 800px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: #161d28;
+    border: 1px solid #232c3a;
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .panel h3 {
+    margin-top: 0;
+    color: #4fd1ff;
+    font-size: 16px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 12px 14px;
+    margin: 10px 0 16px 0;
+    border-radius: 8px;
+    border: 1px solid #2a3444;
+    background: #0e131b;
+    color: #e3e8ee;
+    font-size: 14px;
+  }
+
+  .dropzone {
+    border: 1px dashed #2a3444;
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+    color: #6b7785;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+  input[type="file"] { color: #9aa7b8; }
+
+  button.analyze {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #4fd1ff;
+    color: #07101a;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.analyze:hover { background: #6fe0ff; }
+  button.analyze:disabled { background: #2a3444; color: #6b7785; cursor: not-allowed; }
+
+  #output {
+    margin-top: 18px;
+    background: #0e131b;
+    border: 1px solid #232c3a;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 13px;
+    white-space: pre-wrap;
+    max-height: 320px;
+    overflow-y: auto;
+    line-height: 1.5;
+  }
+
+  .history-item {
+    border-bottom: 1px solid #232c3a;
+    padding: 14px 0;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-item .q {
+    color: #4fd1ff;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .history-item .meta {
+    color: #6b7785;
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+  .history-item .result {
+    font-size: 13px;
+    color: #c4cdd8;
+    white-space: pre-wrap;
+    line-height: 1.5;
+  }
+  #history-list {
+    max-height: 520px;
+    overflow-y: auto;
+  }
+  .empty {
+    color: #6b7785;
+    font-size: 13px;
+    text-align: center;
+    padding: 20px 0;
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <h1>⚕ Chest X Reasoner</h1>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="grid">
+
+    <div class="panel">
+      <h3>New Analysis</h3>
+
+      <div class="dropzone">
+        <input type="file" id="image" accept="image/*">
+      </div>
+
+      <input type="text" id="question" placeholder="Ask a question about this X-ray...">
+
+      <button class="analyze" id="analyzeBtn" onclick="analyze()">Analyze</button>
+
+      <div id="output">Results will appear here.</div>
+    </div>
+
+    <div class="panel">
+      <h3>History</h3>
+      <div id="history-list">
+        <div class="empty">Loading history...</div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+const API = "http://127.0.0.1:5000";
+const user_id = localStorage.getItem("user_id");
+
+if (!user_id) {
+  window.location.href = "login.html";
+}
+
+function logout() {
+  localStorage.removeItem("user_id");
+  window.location.href = "login.html";
+}
+
+function formatResult(result) {
+  if (!result) return "No result returned.";
+
+  // result can be an object {preds, present, absent, answer} or a plain string
+  if (typeof result === "string") return result;
+
+  let text = "";
+
+  if (result.present && result.present.length) {
+    text += "Findings present: " + result.present.join(", ") + "\n";
+  }
+  if (result.absent && result.absent.length) {
+    text += "Findings absent: " + result.absent.join(", ") + "\n";
+  }
+  if (text) text += "\n";
+
+  text += result.answer || "No reasoning generated.";
+
+  return text;
+}
+
+async function analyze() {
+  const fileInput = document.getElementById("image");
+  const question = document.getElementById("question").value;
+  const output = document.getElementById("output");
+  const btn = document.getElementById("analyzeBtn");
+
+  if (!fileInput.files[0] || !question) {
+    output.innerText = "Please select an image and enter a question.";
+    return;
+  }
+
+  let formData = new FormData();
+  formData.append("image", fileInput.files[0]);
+  formData.append("question", question);
+  formData.append("user_id", user_id);
+
+  btn.disabled = true;
+  btn.innerText = "Analyzing...";
+  output.innerText = "Analyzing... please wait";
+
+  try {
+    const response = await fetch(`${API}/analyze`, {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      output.innerText = "Error: " + data.error;
+    } else {
+      output.innerText = formatResult(data.result);
+    }
+
+    loadHistory();
+  } catch (e) {
+    output.innerText = "Error reaching server.";
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "Analyze";
+  }
+}
+
+async function loadHistory() {
+  const list = document.getElementById("history-list");
+
+  try {
+    const res = await fetch(`${API}/history/${user_id}`);
+    const data = await res.json();
+
+    if (!data.length) {
+      list.innerHTML = '<div class="empty">No analyses yet.</div>';
+      return;
+    }
+
+    list.innerHTML = data.map(item => `
+      <div class="history-item">
+        <div class="q">${item.question}</div>
+        <div class="meta">${item.created_at}</div>
+        <div class="result">${formatResult(item.result)}</div>
+      </div>
+    `).join("");
+  } catch (e) {
+    list.innerHTML = '<div class="empty">Could not load history.</div>';
+  }
+}
+
+loadHistory();
+</script>
+
+</body>
+</html>

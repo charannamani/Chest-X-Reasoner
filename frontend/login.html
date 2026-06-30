@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Login · Chest X Reasoner</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at top, #131a24, #0a0e14);
+    font-family: 'Segoe UI', sans-serif;
+    color: #e3e8ee;
+  }
+  .card {
+    background: #161d28;
+    border: 1px solid #232c3a;
+    border-radius: 14px;
+    padding: 40px 36px;
+    width: 340px;
+    box-shadow: 0 0 40px rgba(0, 200, 255, 0.06);
+  }
+  h2 {
+    text-align: center;
+    margin-bottom: 6px;
+    color: #4fd1ff;
+    letter-spacing: 0.5px;
+  }
+  p.sub {
+    text-align: center;
+    color: #6b7785;
+    font-size: 13px;
+    margin-bottom: 28px;
+  }
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    border: 1px solid #2a3444;
+    background: #0e131b;
+    color: #e3e8ee;
+    font-size: 14px;
+  }
+  input:focus { outline: none; border-color: #4fd1ff; }
+  button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #4fd1ff;
+    color: #07101a;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  button:hover { background: #6fe0ff; }
+  #message {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 13px;
+    min-height: 18px;
+  }
+  .link {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 13px;
+    color: #6b7785;
+  }
+  .link a { color: #4fd1ff; text-decoration: none; }
+</style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>⚕ Chest X Reasoner</h2>
+    <p class="sub">Sign in to continue</p>
+
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+
+    <p id="message"></p>
+
+    <div class="link">Don't have an account? <a href="signup.html">Sign up</a></div>
+  </div>
+
+<script>
+async function login() {
+  const msg = document.getElementById("message");
+  msg.style.color = "#e3e8ee";
+  msg.innerText = "Logging in...";
+
+  try {
+    const res = await fetch("http://127.0.0.1:5000/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.user_id) {
+      localStorage.setItem("user_id", data.user_id);
+      msg.style.color = "#4fd1ff";
+      msg.innerText = "Login success — redirecting...";
+      setTimeout(() => window.location.href = "dashboard.html", 600);
+    } else {
+      msg.style.color = "#ff6b6b";
+      msg.innerText = data.error || "Login failed";
+    }
+  } catch (e) {
+    msg.style.color = "#ff6b6b";
+    msg.innerText = "Server not reachable";
+  }
+}
+</script>
+
+</body>
+</html>

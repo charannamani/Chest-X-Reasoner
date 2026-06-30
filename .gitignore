@@ -1,0 +1,16 @@
+.env
+venv/
+__pycache__/
+*.pyc
+*.pkl
+*.log
+
+# local uploads
+temp_upload.png
+
+# vscode
+.vscode/
+
+# python cache
+*.db
+```
