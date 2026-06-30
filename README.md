@@ -10,14 +10,14 @@ The system combines computer vision, language modeling, backend API integration,
 
 ## Features
 
-* User Authentication System
-* Chest X-ray Image Upload
-* Disease Classification using DenseNet121
-* Diagnostic Reasoning Generation using Phi-3 LLM
-* Flask Backend API Integration
-* MongoDB Atlas Cloud Storage
-* External Model Inference Server using Google Colab
-* Scan History Persistence
+- User Authentication System
+- Chest X-ray Image Upload
+- Disease Classification using DenseNet121
+- Diagnostic Reasoning Generation using Phi-3 LLM
+- Flask Backend API Integration
+- MongoDB Atlas Cloud Storage
+- External Model Inference Server using Google Colab
+- Scan History Persistence
 
 ## Architecture
 
@@ -41,25 +41,25 @@ MongoDB Atlas Storage
 
 Backend:
 
-* Python
-* Flask
-* Flask-CORS
+- Python
+- Flask
+- Flask-CORS
 
 AI Models:
 
-* PyTorch
-* DenseNet121
-* Phi-3 Mini
+- PyTorch
+- DenseNet121
+- Phi-3 Mini
 
 Database:
 
-* MongoDB Atlas
+- MongoDB Atlas
 
 Frontend:
 
-* HTML
-* CSS
-* JavaScript
+- HTML
+- CSS
+- JavaScript
 
 ## Workflow
 
@@ -73,7 +73,13 @@ Frontend:
 
 ## Future Improvements
 
-* Full cloud deployment
-* Patient report PDF generation
-* Doctor dashboard
-* Model optimization for production inference
+- Full cloud deployment
+- Patient report PDF generation
+- Doctor dashboard
+- Model optimization for production inference
+
+## Project Status
+
+Current version supports end-to-end inference pipeline with backend API integration and persistent scan history storage.
+
+Repository currently kept private during active development.
