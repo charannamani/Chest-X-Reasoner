@@ -81,5 +81,3 @@ Frontend:
 ## Project Status
 
 Current version supports end-to-end inference pipeline with backend API integration and persistent scan history storage.
-
-Repository currently kept private during active development.
